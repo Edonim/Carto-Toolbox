@@ -30,15 +30,35 @@ function readJSON(filename) {
   {
     if (file.exists)
     {
-      file.open(1 /* FileAccess.ReadOnly */
-                );
+      // CONFERMA: il file è stato trovato
+      System.println("DEBUG: File '" + filename + "' trovato. Procedo alla lettura."); 
+      
+      file.open(1 /* FileAccess.ReadOnly */ );
       var string = file.read();
       file.close();
-      return JSON.parse(string);
+
+      try {
+        // Tenta il parsing
+        return JSON.parse(string);
+      } catch (e) {
+        // ERRORE: Fallimento del parsing JSON
+        System.println("ERRORE DI PARSING: Il contenuto del file non è JSON valido.");
+        System.println("Dettagli errore: " + e); // Stampa il dettaglio dell'errore (e.g., SyntaxError: Unexpected token)
+        return null;
+      }
+    }
+    else 
+    {
+      // ERRORE: File non trovato
+      System.println("ERRORE: File '" + filename + "' NON trovato. Controlla il percorso.");
     }
   }
   catch (err)
-  {}
+  {
+    // ERRORE DI I/O: Problemi di permessi o blocco file
+    System.println("ERRORE DI I/O: Problema durante l'apertura/lettura del file.");
+    System.println("Dettagli errore: " + err);
+  }
   return null;
 }
 
@@ -453,29 +473,33 @@ function createDefaultNetwork()
 
 function paste( reference_json_filename )
 {
-		var currentpath = String(scene.currentProjectPathRemapped())
-		var JsonPath = currentpath.replace("\\\\SRV-HARMONY24\\usadata000\\125_BIRTHDAY\\scene-", "") + ".json";
-		System.println( "JSON Trovato!" + JsonPath );
+	var currentpath = String(scene.currentProjectPathRemapped())
+    System.println( "Percorso attuale: " + currentpath );
+    var episode = currentpath.replace("\\\\SRV-HARMONY24\\usadata000\\", "");
+    System.println( "Episodio e scena selezionati: " + episode );
+
+	var JsonPath = episode.replace(/.*\\scene-/, "") + "_ANI" + ".json";
+	System.println( "Nome del JSON che sto cercando: " + JsonPath );
 	
   if (reference_json_filename == null)
 
 		reference_json_filename = scene.currentProjectPathRemapped() + "\\" + JsonPath ;
 
-  System.println( "Inizio il scene prep nella cartella: " + reference_json_filename );
+  System.println( "Inizio il scene prep con il JSON: " + reference_json_filename );
   
   
   
   var fileContent = readJSON( reference_json_filename );
   if( fileContent == null )
   {
-    System.println( "TB_WebCC_Paste.js : file not found :" + reference_json_filename );
+    System.println( "errore: sentire Edo o Vale" );
     return;
   }
   
   var root = node.root();
   var bottomComposite = findBestComposite( root );
 
-  scene.beginUndoRedoAccum("Paste template from Producer");
+  scene.beginUndoRedoAccum("Inizio il sceneprep");
 
   var transparency, flatten, alignmentRule, templates  = null;
 
@@ -534,7 +558,7 @@ function paste( reference_json_filename )
   }
   else
   {
-    System.println( "TB_WebCC_Paste.js : file list not found in:" + "\n" + reference_json_filename );
+    System.println( "il JSON sembra essere vuoto o corrotto" + "\n" + reference_json_filename );
     templates = null;
   }
 
@@ -550,5 +574,7 @@ function paste( reference_json_filename )
   scene.endUndoRedoAccum();
   scene.saveAsNewVersion("Producer Paste", true );
 
-  System.println( "TB_WebCC_Paste.js - done");
+  System.println( "CartoPrep ha finito per questa scena!");
 }
+
+
