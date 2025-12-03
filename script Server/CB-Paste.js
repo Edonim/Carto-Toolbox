@@ -26,14 +26,12 @@ var FlatPSDTransparencyMode = 2; //Premultiplied wih White
 function readJSON(filename) {
   var file = new File(filename);
 
-  try
-  {
-    if (file.exists)
-    {
+  try {
+    if (file.exists) {
       // CONFERMA: il file è stato trovato
-      System.println("DEBUG: File '" + filename + "' trovato. Procedo alla lettura."); 
-      
-      file.open(1 /* FileAccess.ReadOnly */ );
+      System.println("DEBUG: File '" + filename + "' trovato. Procedo alla lettura.");
+
+      file.open(1 /* FileAccess.ReadOnly */);
       var string = file.read();
       file.close();
 
@@ -47,14 +45,12 @@ function readJSON(filename) {
         return null;
       }
     }
-    else 
-    {
+    else {
       // ERRORE: File non trovato
       System.println("ERRORE: File '" + filename + "' NON trovato. Controlla il percorso.");
     }
   }
-  catch (err)
-  {
+  catch (err) {
     // ERRORE DI I/O: Problemi di permessi o blocco file
     System.println("ERRORE DI I/O: Problema durante l'apertura/lettura del file.");
     System.println("Dettagli errore: " + err);
@@ -76,14 +72,12 @@ function basename(filename) {
   add a composite node and connect to this composite the array of 'newNodesUnconnected'.
    return the composite
  */
-function addCompositeAndConnect( root, name, newNodesUnconnected )
-{
-  var composite = node.add( root, "Composite_" + name, "COMPOSITE", 0,0,0);
-  if( composite )
-  {
-    newNodesUnconnected.forEach( function(n) {
-                                node.link( n, 0, composite, 0 /* auto add port */ )
-                                })
+function addCompositeAndConnect(root, name, newNodesUnconnected) {
+  var composite = node.add(root, "Composite_" + name, "COMPOSITE", 0, 0, 0);
+  if (composite) {
+    newNodesUnconnected.forEach(function (n) {
+      node.link(n, 0, composite, 0 /* auto add port */)
+    })
   }
   return composite;
 }
@@ -95,38 +89,32 @@ function addCompositeAndConnect( root, name, newNodesUnconnected )
  @param root - the root group where the node will be inserted
  @param filename  - the 'tpl' filename.
 */
-function dropTemplate( root, filename , transparency, alignmentRule)
-{
-  var dragObject = copyPaste.copyFromTemplate( filename, 0 /* whole template */,0 /*whole template */, copyPaste.getCurrentPasteOptions() );
-  if( dragObject )
-  {
+function dropTemplate(root, filename, transparency, alignmentRule) {
+  var dragObject = copyPaste.copyFromTemplate(filename, 0 /* whole template */, 0 /*whole template */, copyPaste.getCurrentPasteOptions());
+  if (dragObject) {
 
     var beforeNodes = node.subNodes(root);
-    copyPaste.pasteNewNodes( dragObject, root, copyPaste.getCurrentPasteOptions() );
+    copyPaste.pasteNewNodes(dragObject, root, copyPaste.getCurrentPasteOptions());
     var afterNodes = node.subNodes(root);
 
     var newNodes = [];
-    afterNodes.forEach( function( n ) {
+    afterNodes.forEach(function (n) {
       var i;
-      for( i = 0; i < beforeNodes.length; ++i )
-      {
-        if( beforeNodes[i] == n )
+      for (i = 0; i < beforeNodes.length; ++i) {
+        if (beforeNodes[i] == n)
           break;
       }
-      if( i == beforeNodes.length )
-      {
-        newNodes.push( n );
+      if (i == beforeNodes.length) {
+        newNodes.push(n);
       }
-    } );
+    });
 
     var newNodesUnconnected = [];
-    newNodes.forEach( function( n ) {
-      if( node.numberOfOutputPorts( n ) == 1 &&
-        node.numberOfOutputLinks( n, 0 ) == 0 )
-      {
+    newNodes.forEach(function (n) {
+      if (node.numberOfOutputPorts(n) == 1 &&
+        node.numberOfOutputLinks(n, 0) == 0) {
         newNodesUnconnected.push(n);
-        if (node.type(n) == "READ")
-        {
+        if (node.type(n) == "READ") {
           var transparencyAttr = node.getAttr(n, frame.current(), "READ_TRANSPARENCY");
           var opacityAttr = node.getAttr(n, frame.current(), "OPACITY");
 
@@ -137,40 +125,35 @@ function dropTemplate( root, filename , transparency, alignmentRule)
           alignmentAttr.setValue(alignmentRule);
         }
       }
-    } );
-    if( newNodesUnconnected.length > 1 )
-    {
+    });
+    if (newNodesUnconnected.length > 1) {
       // if there is > 1 unconnected nodes - collect them to a composite and then
       // connect that new comosite to the bottom composite of the scene where all other
       // asset are connected.
-      return addCompositeAndConnect(  root, basename(filename), newNodesUnconnected );
+      return addCompositeAndConnect(root, basename(filename), newNodesUnconnected);
     }
-    else
-    {
+    else {
       return newNodesUnconnected[0];
     }
   }
   return null;
 }
 
-function getUniqueColumnName( column_prefix )
-{
+function getUniqueColumnName(column_prefix) {
   var suffix = 0;
   // finds if unique name for a column
   var column_name = column_prefix;
-  while(suffix < 200)
-  {
-      if(!column.type(column_name))
-          break;
+  while (suffix < 200) {
+    if (!column.type(column_name))
+      break;
 
-      suffix = suffix + 1;
-      column_name = column_prefix + "_" + suffix;
+    suffix = suffix + 1;
+    column_name = column_prefix + "_" + suffix;
   }
   return column_name;
 }
 
-function copyFile( srcFilename, dstFilename )
-{
+function copyFile(srcFilename, dstFilename) {
   var srcFile = new PermanentFile(srcFilename);
   var dstFile = new PermanentFile(dstFilename);
   srcFile.copy(dstFile);
@@ -182,35 +165,32 @@ function copyFile( srcFilename, dstFilename )
 
   @returns the name of the read created so that it can be connected to the graph.
 */
-function dropFileInNewElement( root, filename, transparency, alignmentRule)
-{
+function dropFileInNewElement(root, filename, transparency, alignmentRule) {
   var vectorFormat = null;
   var extension = null;
 
-  var pos = filename.lastIndexOf( "." );
-  if( pos < 0 )
+  var pos = filename.lastIndexOf(".");
+  if (pos < 0)
     return null;
 
-  extension = filename.substr(pos+1).toLowerCase();
-  if( extension == "jpeg" )
+  extension = filename.substr(pos + 1).toLowerCase();
+  if (extension == "jpeg")
     extension = "jpg";
-  if(  extension == "tvg" )
-  {
+  if (extension == "tvg") {
     vectorFormat = "TVG"
-    extension ="SCAN"; // element.add() will use this.
+    extension = "SCAN"; // element.add() will use this.
   }
 
   var name = basename(filename);
   var elemId = element.add(name, "BW", scene.numberOfUnitsZ(), extension.toUpperCase(), vectorFormat);
-  if ( elemId == -1 )
-  {
+  if (elemId == -1) {
     // hum, unknown file type most likely -- let's skip it.
     return null; // no read to add.
   }
 
   var uniqueColumnName = getUniqueColumnName(name);
-  column.add(uniqueColumnName , "DRAWING");
-  column.setElementIdOfDrawing( uniqueColumnName, elemId );
+  column.add(uniqueColumnName, "DRAWING");
+  column.setElementIdOfDrawing(uniqueColumnName, elemId);
 
   var read = node.add(root, name, "READ", 0, 0, 0);
   var transparencyAttr = node.getAttr(read, frame.current(), "READ_TRANSPARENCY");
@@ -237,13 +217,12 @@ function dropFileInNewElement( root, filename, transparency, alignmentRule)
 
   Drawing.create(elemId, timing, true); // create a drawing drawing, 'true' indicate that the file exists.
   var drawingFilePath = Drawing.filename(elemId, timing);   // get the actual path, in tmp folder.
-  copyFile( filename, drawingFilePath );
+  copyFile(filename, drawingFilePath);
 
   //set exposure of all frames.
   var nframes = frame.numberOf();
-  for( var i =1; i <= nframes; ++i)
-  {
-    column.setEntry(uniqueColumnName, 1, i, timing );
+  for (var i = 1; i <= nframes; ++i) {
+    column.setEntry(uniqueColumnName, 1, i, timing);
   }
 
   return read; // name of the new drawing layer.
@@ -254,13 +233,12 @@ function dropFileInNewElement( root, filename, transparency, alignmentRule)
 
   @returns the name of the read created so that it can be connected to the graph.
 */
-function dropPSDSplitLayer(root, filename, transparency, alignmentRule)
-{
+function dropPSDSplitLayer(root, filename, transparency, alignmentRule) {
   var vectorFormat = "TVG";
   var extension = "PSD";
 
-  var pos  = filename.lastIndexOf( "." );
-  if (pos < 0 )
+  var pos = filename.lastIndexOf(".");
+  if (pos < 0)
     return null;
 
   var name = basename(filename);
@@ -268,32 +246,28 @@ function dropPSDSplitLayer(root, filename, transparency, alignmentRule)
   var newNodes = [];
 
   if (typeof CELIO === "object") //Verify CELIO plugin is installed. If not, import the PSD flattened.
-	
+
   {
     var layerInfo = CELIO.getLayerInformation(filename);
-	
 
-    if (layerInfo)
-    {
+
+    if (layerInfo) {
       var elemId = element.add(name, "BW", scene.numberOfUnitsZ(), extension, "None");
 
-      if ( elemId != -1 )
+      if (elemId != -1)
         Drawing.create(elemId, "1", true);
       else
         return null;
 
-      for (var i in layerInfo)
-      {
+      for (var i in layerInfo) {
         var layerName = layerInfo[i].layerName;
 
         var uniqueColumnName = getUniqueColumnName(name);
-        if ( elemId != -1 )
-        {
+        if (elemId != -1) {
           column.add(uniqueColumnName, "DRAWING");
-          column.setElementIdOfDrawing( uniqueColumnName, elemId );
+          column.setElementIdOfDrawing(uniqueColumnName, elemId);
         }
-        else
-        {
+        else {
           return null;
         }
         var read = node.add(root, layerName, "READ", 0, 0, 0);
@@ -313,9 +287,8 @@ function dropPSDSplitLayer(root, filename, transparency, alignmentRule)
 
         column.setEntry(uniqueColumnName, 1, 1, "1");
 
-        CELIO.pasteImageFile({ src : filename, dst : { node : read, frame : 1} } );
-        for (var j = 1; j <= frame.numberOf(); ++j)
-        {
+        CELIO.pasteImageFile({ src: filename, dst: { node: read, frame: 1 } });
+        for (var j = 1; j <= frame.numberOf(); ++j) {
           column.setEntry(uniqueColumnName, 1, j, "1" + ":" + layerInfo[i].layer);
         }
         newNodes[i] = read;
@@ -326,89 +299,78 @@ function dropPSDSplitLayer(root, filename, transparency, alignmentRule)
       return null;
     }
   }
-  else
-  {
-    
-    return dropFileInNewElement( root, filename, transparency, alignmentRule);
-	System.println("File imported in one layer. Install CELIO plugin to split layers.");
+  else {
+
+    return dropFileInNewElement(root, filename, transparency, alignmentRule);
+    System.println("File imported in one layer. Install CELIO plugin to split layers.");
   }
 
-  if ( newNodes.length > 1) //If more than one node is created (more than 1 layer), connects them all to a composite
+  if (newNodes.length > 1) //If more than one node is created (more than 1 layer), connects them all to a composite
   {
-    return addCompositeAndConnect( root, basename(filename), newNodes );
+    return addCompositeAndConnect(root, basename(filename), newNodes);
   }
-  else
-  {
+  else {
     return newNodes[0];
   }
 }
 
-function pasteSingleTemplate( root, bottomComposite, filename,  flatten, transparency, alignmentRule )
-{
+function pasteSingleTemplate(root, bottomComposite, filename, flatten, transparency, alignmentRule) {
   // preprend the library.
 
   var newNodeToConnect = null;
 
-  if( filename.substr(  -4  ) == ".TPL" )
-  {
-    newNodeToConnect = dropTemplate( root, filename, transparency, alignmentRule);
-	System.println( "è stato importato correttamente com TPL" );
-	
+  if (filename.substr(-4).toUpperCase() == ".TPL") {
+    newNodeToConnect = dropTemplate(root, filename, transparency, alignmentRule);
+    System.println("è stato importato correttamente come TPL");
+
   }
-  else if( (filename.substr( -4 ) == ".PSD") && (flatten == "layer") )
-  {
-    newNodeToConnect = dropPSDSplitLayer( root, filename, transparency, alignmentRule);
-	System.println( "è stato importato a livelli" );
-	
+  else if ((filename.substr(-4).toUpperCase() == ".PSD") && (flatten == "layer")) {
+    newNodeToConnect = dropPSDSplitLayer(root, filename, transparency, alignmentRule);
+    System.println("è stato importato a livelli");
+
   }
-  else
-  {
+  else {
     // assume the file is a bitmap or a 3d files - add a drawing node of the right type
     // This will also handle psd files imported into a single layer (flattened)
-    newNodeToConnect = dropFileInNewElement( root, filename, transparency, alignmentRule);
-	System.println( "è una jpg importata correttamente, se doveva essere un PSD o un template sentire Edo" );
+    newNodeToConnect = dropFileInNewElement(root, filename, transparency, alignmentRule);
+    System.println("il file importato non è un TPL, PSD o PSD a livelli, contattare Edo");
   }
 
 
   // find the default composite and connect 'newNodeToConnect' to this composite.
-  if ( newNodeToConnect && bottomComposite )
-  {
-    var n = node.numberOfInputPorts( bottomComposite);
-    node.link( newNodeToConnect, 0, bottomComposite, n );
+  if (newNodeToConnect && bottomComposite) {
+    var n = node.numberOfInputPorts(bottomComposite);
+    node.link(newNodeToConnect, 0, bottomComposite, n);
   }
 }
 
-function findBestComposite( root )
-{
-  var nodes = node.subNodes( root);
+function findBestComposite(root) {
+  var nodes = node.subNodes(root);
   var best = null;
-  nodes.forEach( function(n) {
-                if( node.type( n ) == "COMPOSITE" )
-                {
-                  if( best == null )
-                    best = n;
-                  else if( node.coordY( n ) < node.coordY( best ) )
-                  {
-                    best = n;
-                  }
-                }
-    });
+  nodes.forEach(function (n) {
+    if (node.type(n) == "COMPOSITE") {
+      if (best == null)
+        best = n;
+      else if (node.coordY(n) < node.coordY(best)) {
+        best = n;
+      }
+    }
+  });
   return best;
 }
 
-function createDefaultNetwork()
-{
+function createDefaultNetwork() {
   const NODE_WIDTH = 130;
 
   var isCreateNet = true
 
   var oldNbFrames = frame.numberOf();
   if (oldNbFrames < 60)
-    frame.insert(0, 60-oldNbFrames);
+    frame.insert(0, 60 - oldNbFrames);
   var nbColumns = 1;
 
   var addedReadNodes = [];
-  var xPos = Math.round(-(nbColumns * NODE_WIDTH/2));
+  var xPos = Math.round(-(nbColumns * NODE_WIDTH / 2));
   var yPos = -50;
   var compNode;
   var dispNode;
@@ -416,33 +378,29 @@ function createDefaultNetwork()
 
   isCreateNet = true;
 
-  if (nbColumns > 0 && isCreateNet == true)
-  {
-    compNode = node.add(node.root(),"Composite" , "COMPOSITE", 0, yPos+50, 0);
-    dispNode = node.add(node.root(),"Display" , "DISPLAY", 50, yPos+100, 0);
-    writeNode = node.add(node.root(),"Write", "WRITE", -50, yPos+100, 0);
-    node.link(compNode, 0 , dispNode, 0);
-    node.link(compNode, 0 , writeNode, 0);
+  if (nbColumns > 0 && isCreateNet == true) {
+    compNode = node.add(node.root(), "Composite", "COMPOSITE", 0, yPos + 50, 0);
+    dispNode = node.add(node.root(), "Display", "DISPLAY", 50, yPos + 100, 0);
+    writeNode = node.add(node.root(), "Write", "WRITE", -50, yPos + 100, 0);
+    node.link(compNode, 0, dispNode, 0);
+    node.link(compNode, 0, writeNode, 0);
   }
 
-  for (var i=1; i<=nbColumns; i++)
-  {
+  for (var i = 1; i <= nbColumns; i++) {
     var elemName;
-    if( i==1 )
-        elemName = "Drawing";
+    if (i == 1)
+      elemName = "Drawing";
     else
-        elemName = "Drawing_" + (i-1);
-      var elemId = element.add(elemName, "BW", scene.numberOfUnitsZ(), "SCAN", "TVG");
-    if ( elemId != -1 )
-    {
+      elemName = "Drawing_" + (i - 1);
+    var elemId = element.add(elemName, "BW", scene.numberOfUnitsZ(), "SCAN", "TVG");
+    if (elemId != -1) {
       column.add(elemName, "DRAWING");
-      column.setElementIdOfDrawing( elemName, elemId );
+      column.setElementIdOfDrawing(elemName, elemId);
     }
 
-    if ( isCreateNet )
-    {
+    if (isCreateNet) {
       var vnode = node.add(node.root(), elemName, "READ", xPos, yPos, 0);
-      addedReadNodes[i-1] = vnode;
+      addedReadNodes[i - 1] = vnode;
       // DRAWING.ELEMENT: same hierarchy as in .solo file
       node.linkAttr(vnode, "DRAWING.ELEMENT", elemName);
 
@@ -450,131 +408,112 @@ function createDefaultNetwork()
     }
   }
 
-  if ( isCreateNet )
-  {
+  if (isCreateNet) {
     var compPort = 0;
-    for (var i=nbColumns-1; i>=0; i--, compPort++)
-    {
-      node.link(addedReadNodes[i], 0 , compNode, compPort);
+    for (var i = nbColumns - 1; i >= 0; i--, compPort++) {
+      node.link(addedReadNodes[i], 0, compNode, compPort);
     }
 
-    if (nbColumns >= 1)
-    {
+    if (nbColumns >= 1) {
       selection.clearSelection();
       selection.addNodeToSelection(addedReadNodes[0]);
       // if node.setAsGlobalDisplay is implemented then use it.
-      if (typeof node.setAsGlobalDisplay == "function" )
-      {
+      if (typeof node.setAsGlobalDisplay == "function") {
         node.setAsGlobalDisplay(dispNode);
       }
     }
   }
 }
 
-function paste( reference_json_filename )
-{
-	var currentpath = String(scene.currentProjectPathRemapped())
-    System.println( "Percorso attuale: " + currentpath );
-    var episode = currentpath.replace("\\\\SRV-HARMONY24\\usadata000\\", "");
-    System.println( "Episodio e scena selezionati: " + episode );
+function paste(reference_json_filename) {
+  var currentpath = String(scene.currentProjectPathRemapped())
+  System.println("Percorso attuale: " + currentpath);
+  var episode = currentpath.replace("\\\\SRV-HARMONY24\\usadata000\\", "");
+  System.println("Episodio e scena selezionati: " + episode);
 
-	var JsonPath = episode.replace(/.*\\scene-/, "") + "_ANI" + ".json";
-	System.println( "Nome del JSON che sto cercando: " + JsonPath );
-	
+  var JsonPath = episode.replace(/.*\\scene-/, "") + "_ANI" + ".json";
+  System.println("Nome del JSON che sto cercando: " + JsonPath);
+
   if (reference_json_filename == null)
 
-		reference_json_filename = scene.currentProjectPathRemapped() + "\\" + JsonPath ;
+    reference_json_filename = scene.currentProjectPathRemapped() + "\\" + JsonPath;
 
-  System.println( "Inizio il scene prep con il JSON: " + reference_json_filename );
-  
-  
-  
-  var fileContent = readJSON( reference_json_filename );
-  if( fileContent == null )
-  {
-    System.println( "errore: sentire Edo o Vale" );
+  System.println("Inizio il scene prep con il JSON: " + reference_json_filename);
+
+
+
+  var fileContent = readJSON(reference_json_filename);
+  if (fileContent == null) {
+    System.println("errore: sentire Edo o Vale");
     return;
   }
-  
+
   var root = node.root();
-  var bottomComposite = findBestComposite( root );
+  var bottomComposite = findBestComposite(root);
 
   scene.beginUndoRedoAccum("Inizio il sceneprep");
 
-  var transparency, flatten, alignmentRule, templates  = null;
+  var transparency, flatten, alignmentRule, templates = null;
 
-  if( node.numberOfSubNodes( root ) == 0 )
-  {
+  if (node.numberOfSubNodes(root) == 0) {
     createDefaultNetwork();
   }
 
 
-  if ('transparency' in fileContent)
-  {
+  if ('transparency' in fileContent) {
     transparency = fileContent.transparency;
   }
-  else
-  {
+  else {
     transparency = 100;
   }
 
-  if ('psd' in fileContent)
-  {
+  if ('psd' in fileContent) {
     flatten = fileContent.psd;
-	System.println( "ho trovato questo come opzione per i PSD: " + flatten );
+    System.println("ho trovato questo come opzione per i PSD: " + flatten);
   }
-  else
-  {
+  else {
     flatten = "flatten";
-	System.println( "Manca l'opzione per importare a livelli, appiattisco" );
+    System.println("Manca l'opzione per importare a livelli, appiattisco");
   }
 
-  if ('alignment' in fileContent)
-  {
+  if ('alignment' in fileContent) {
     alignmentRule = fileContent.alignment;
   }
-  else
-  {
+  else {
     alignmentRule = 4;
   }
 
-  if (alignmentRule == "pan")
-  {
+  if (alignmentRule == "pan") {
     alignmentRule = 10;
   }
-  else if (alignmentRule =="project_resolution")
-  {
+  else if (alignmentRule == "project_resolution") {
     alignmentRule = 9;
   }
-  else
-  {
+  else {
     alignmentRule = 4;
   }
 
-  if ('files' in fileContent)
-  {
+  if ('files' in fileContent) {
     templates = fileContent.files;
-	System.println( "ho trovato questi file nel JSON: " + templates );
+    System.println("ho trovato questi file nel JSON: " + templates);
   }
-  else
-  {
-    System.println( "il JSON sembra essere vuoto o corrotto" + "\n" + reference_json_filename );
+  else {
+    System.println("il JSON sembra essere vuoto o corrotto" + "\n" + reference_json_filename);
     templates = null;
   }
 
-  if (templates && Array.isArray( templates ) )
-  {
-    templates.forEach( function( filename ){
-      System.println( "...." + filename);
-      pasteSingleTemplate( root, bottomComposite, filename,  flatten, transparency, alignmentRule );
+  if (templates && Array.isArray(templates)) {
+    templates.forEach(function (filename) {
+      System.println("...." + filename);
+      pasteSingleTemplate(root, bottomComposite, filename, flatten, transparency, alignmentRule);
     });
   }
 
 
   scene.endUndoRedoAccum();
-  scene.saveAsNewVersion("Producer Paste", true );
+  scene.saveAsNewVersion("Scene Prep", true);
 
-  System.println( "CartoPrep ha finito per questa scena!");
+  System.println("CartoPrep ha finito per questa scena!");
 }
 
 
