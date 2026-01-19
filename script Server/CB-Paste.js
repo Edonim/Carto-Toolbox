@@ -16,6 +16,43 @@
    @return null
 */
 
+var g_logBuffer = [];
+
+/* write a message to a log buffer and console */
+function logMsg(message) {
+  try {
+    var date = new Date();
+    var timestamp = date.getFullYear() + "-" +
+      ("0" + (date.getMonth() + 1)).slice(-2) + "-" +
+      ("0" + date.getDate()).slice(-2) + " " +
+      ("0" + date.getHours()).slice(-2) + ":" +
+      ("0" + date.getMinutes()).slice(-2) + ":" +
+      ("0" + date.getSeconds()).slice(-2);
+
+    var logLine = "[" + timestamp + "] " + message;
+    g_logBuffer.push(logLine);
+    System.println(message);
+  } catch (err) {
+    System.println("LOGGER ERROR: " + err);
+  }
+}
+
+/* write the buffered log to a file in the scene directory */
+function flushLog() {
+  try {
+    var scenePath = scene.currentProjectPathRemapped();
+    var logFilePath = scenePath + "/log_CB-Paste.txt";
+    var file = new File(logFilePath);
+
+    file.open(2 /* FileAccess.WriteOnly */);
+    file.write(g_logBuffer.join("\n"));
+    file.close();
+    System.println("CartoPrep: log finale scritto su file");
+  } catch (err) {
+    System.println("FLUSH ERROR: " + err);
+  }
+}
+
 var PNGTransparencyMode = 0; //Premultiplied wih Black
 var TGATransparencyMode = 0; //Premultiplied wih Black
 var SGITransparencyMode = 0; //Premultiplied wih Black
@@ -29,7 +66,7 @@ function readJSON(filename) {
   try {
     if (file.exists) {
       // CONFERMA: il file è stato trovato
-      System.println("DEBUG: File '" + filename + "' trovato. Procedo alla lettura.");
+      logMsg("DEBUG: File '" + filename + "' trovato. Procedo alla lettura.");
 
       file.open(1 /* FileAccess.ReadOnly */);
       var string = file.read();
@@ -40,20 +77,20 @@ function readJSON(filename) {
         return JSON.parse(string);
       } catch (e) {
         // ERRORE: Fallimento del parsing JSON
-        System.println("ERRORE DI PARSING: Il contenuto del file non è JSON valido.");
-        System.println("Dettagli errore: " + e); // Stampa il dettaglio dell'errore (e.g., SyntaxError: Unexpected token)
+        logMsg("ERRORE DI PARSING: Il contenuto del file non è JSON valido.");
+        logMsg("Dettagli errore: " + e); // Stampa il dettaglio dell'errore (e.g., SyntaxError: Unexpected token)
         return null;
       }
     }
     else {
       // ERRORE: File non trovato
-      System.println("ERRORE: File '" + filename + "' NON trovato. Controlla il percorso.");
+      logMsg("ERRORE: File '" + filename + "' NON trovato. Controlla il percorso.");
     }
   }
   catch (err) {
     // ERRORE DI I/O: Problemi di permessi o blocco file
-    System.println("ERRORE DI I/O: Problema durante l'apertura/lettura del file.");
-    System.println("Dettagli errore: " + err);
+    logMsg("ERRORE DI I/O: Problema durante l'apertura/lettura del file.");
+    logMsg("Dettagli errore: " + err);
   }
   return null;
 }
@@ -261,6 +298,11 @@ function dropPSDSplitLayer(root, filename, transparency, alignmentRule) {
 
       for (var i in layerInfo) {
         var layerName = layerInfo[i].layerName;
+        if (layerName.length > 23) {
+          var oldName = layerName;
+          layerName = layerName.substring(0, 23);
+          logMsg("Truncated layer name: '" + oldName + "' -> '" + layerName + "'");
+        }
 
         var uniqueColumnName = getUniqueColumnName(name);
         if (elemId != -1) {
@@ -302,7 +344,7 @@ function dropPSDSplitLayer(root, filename, transparency, alignmentRule) {
   else {
 
     return dropFileInNewElement(root, filename, transparency, alignmentRule);
-    System.println("File imported in one layer. Install CELIO plugin to split layers.");
+    logMsg("File imported in one layer. Install CELIO plugin to split layers.");
   }
 
   if (newNodes.length > 1) //If more than one node is created (more than 1 layer), connects them all to a composite
@@ -321,19 +363,19 @@ function pasteSingleTemplate(root, bottomComposite, filename, flatten, transpare
 
   if (filename.substr(-4).toUpperCase() == ".TPL") {
     newNodeToConnect = dropTemplate(root, filename, transparency, alignmentRule);
-    System.println("è stato importato correttamente come TPL");
+    logMsg("è stato importato correttamente come TPL");
 
   }
   else if ((filename.substr(-4).toUpperCase() == ".PSD") && (flatten == "layer")) {
     newNodeToConnect = dropPSDSplitLayer(root, filename, transparency, alignmentRule);
-    System.println("è stato importato a livelli");
+    logMsg("è stato importato a livelli");
 
   }
   else {
     // assume the file is a bitmap or a 3d files - add a drawing node of the right type
     // This will also handle psd files imported into a single layer (flattened)
     newNodeToConnect = dropFileInNewElement(root, filename, transparency, alignmentRule);
-    System.println("il file importato non è un TPL, PSD o PSD a livelli, contattare Edo");
+    logMsg("il file importato non è un TPL, PSD o PSD a livelli, contattare Edo");
   }
 
 
@@ -427,24 +469,26 @@ function createDefaultNetwork() {
 
 function paste(reference_json_filename) {
   var currentpath = String(scene.currentProjectPathRemapped())
-  System.println("Percorso attuale: " + currentpath);
+  logMsg("Percorso attuale: " + currentpath);
   var episode = currentpath.replace("\\\\SRV-HARMONY24\\usadata000\\", "");
-  System.println("Episodio e scena selezionati: " + episode);
+  logMsg("Episodio e scena selezionati: " + episode);
 
   var JsonPath = episode.replace(/.*\\scene-/, "") + "_ANI" + ".json";
-  System.println("Nome del JSON che sto cercando: " + JsonPath);
+  logMsg("Nome del JSON che sto cercando: " + JsonPath);
 
   if (reference_json_filename == null)
 
     reference_json_filename = scene.currentProjectPathRemapped() + "\\" + JsonPath;
 
-  System.println("Inizio il scene prep con il JSON: " + reference_json_filename);
+  logMsg("Inizio il scene prep con il JSON: " + reference_json_filename);
 
 
 
   var fileContent = readJSON(reference_json_filename);
   if (fileContent == null) {
-    System.println("errore: sentire Edo o Vale");
+    logMsg("errore: sentire Edo o Vale");
+    logMsg("ERRORE: JSON non trovato o corrotto in " + reference_json_filename);
+    flushLog();
     return;
   }
 
@@ -469,11 +513,11 @@ function paste(reference_json_filename) {
 
   if ('psd' in fileContent) {
     flatten = fileContent.psd;
-    System.println("ho trovato questo come opzione per i PSD: " + flatten);
+    logMsg("ho trovato questo come opzione per i PSD: " + flatten);
   }
   else {
     flatten = "flatten";
-    System.println("Manca l'opzione per importare a livelli, appiattisco");
+    logMsg("Manca l'opzione per importare a livelli, appiattisco");
   }
 
   if ('alignment' in fileContent) {
@@ -495,25 +539,28 @@ function paste(reference_json_filename) {
 
   if ('files' in fileContent) {
     templates = fileContent.files;
-    System.println("ho trovato questi file nel JSON: " + templates);
+    logMsg("ho trovato questi file nel JSON: " + templates);
   }
   else {
-    System.println("il JSON sembra essere vuoto o corrotto" + "\n" + reference_json_filename);
+    logMsg("il JSON sembra essere vuoto o corrotto" + "\n" + reference_json_filename);
     templates = null;
   }
 
   if (templates && Array.isArray(templates)) {
+    logMsg("Starting paste operation with JSON: " + reference_json_filename);
     templates.forEach(function (filename) {
-      System.println("...." + filename);
+      logMsg("...." + filename);
       pasteSingleTemplate(root, bottomComposite, filename, flatten, transparency, alignmentRule);
     });
+    logMsg("Paste operation completed successfully.");
   }
 
 
   scene.endUndoRedoAccum();
   scene.saveAsNewVersion("Scene Prep", true);
 
-  System.println("CartoPrep ha finito per questa scena!");
+  logMsg("CartoPrep ha finito per questa scena!");
+  flushLog();
 }
 
 
