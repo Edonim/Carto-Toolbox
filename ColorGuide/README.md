@@ -4,5 +4,5 @@
 # Assitente Guida Colore
 Script per creare un campione colore, crea un gruppo con dentro un rettangolo del colore selezionato, valori rgb e nome del colore
 
-ringrazio https://gist.github.com/vladocar
+ringrazio https://gist.github.com/vladocar https://gist.github.com/vladocar/1307987
 
