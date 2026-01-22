@@ -8,8 +8,8 @@ La repository contiene script per Control Center per Harmony Server e delle azio
 ![](https://img.shields.io/badge/-JavaScript-orange?style=plastic&logo=JavaScript) ![](https://img.shields.io/badge/-Python-informational?style=plastic&logo=Python)
 
 
-## Script per Harmony server:
+## Script per ToonBoom Harmony ![Harmony](https://img.shields.io/badge/Harmony-22-blue?style=plastic)
 
-### CB-Paste ![](https://img.shields.io/badge/Toon_Boom-Harmony_22-blueviolet?style=plastic&logo=target)
+### CB-Paste
 Versione modificata dello script integrato di Harmony per producer e Control Center, permette di automatizzare la creazione del scene prep di scene Harmony leggendo un file JSON inserito dentro la cartella della scena nel database
 
