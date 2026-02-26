@@ -15,6 +15,7 @@ Versione modificata dello script integrato di Harmony per producer e Control Cen
 
 ## Script per Adobe Photoshop ![Adobe](https://img.shields.io/badge/Adobe-Photoshop-blue?style=plastic&logo=Adobe)
 
+### Assistente Guida Colore 
 Assistente Guida Colore è uno script per Adobe Photoshop pensato per velocizzare la creazione di guide colore pulite, leggibili e TV-safe, ideali per animazione, motion graphics e broadcast.
 Partendo dal colore attivo in primo piano, lo script genera automaticamente una guida visiva completa all’interno del documento, riducendo errori e perdite di tempo nel workflow.
 
